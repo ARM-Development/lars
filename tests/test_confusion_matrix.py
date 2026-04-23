@@ -88,6 +88,18 @@ def test_confusion_matrix_counts(sample_df):
     np.testing.assert_array_equal(actual, expected)
 
 
+def test_cohen_kappa(sample_df):
+    """κ = (p_o - p_e) / (1 - p_e)
+    p_o = 4/6 (4 agreements out of 6 rows)
+    p_e = (3/6)^2 + (2/6)^2 + (1/6)^2 = 14/36 = 7/18
+    κ   = (12/18 - 7/18) / (11/18) = 5/11
+    """
+    from lars.util.confusion_matrix import calculate_cohen_kappa
+
+    kappa = calculate_cohen_kappa(sample_df)
+    assert kappa == pytest.approx(5 / 11)
+
+
 def test_normalized_confusion_matrix_values(sample_df):
     """Row-normalized values for each true class."""
     from lars.util.confusion_matrix import plot_confusion_matrix

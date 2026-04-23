@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, cohen_kappa_score
 from sklearn.preprocessing import LabelEncoder
 
 def plot_confusion_matrix(df, label_col='label', pred_col='llm_label', normalize=None, ax=None):
@@ -30,3 +30,23 @@ def plot_confusion_matrix(df, label_col='label', pred_col='llm_label', normalize
     
     disp.plot(ax=ax, cmap=plt.cm.Blues)
     ax.set_title('Confusion Matrix')
+
+
+def calculate_cohen_kappa(df, label_col='label', pred_col='llm_label'):
+    """
+    Calculate Cohen's kappa from true and predicted labels in a DataFrame.
+
+    Parameters
+    ----------
+    df (pd.DataFrame): DataFrame containing true and predicted labels.
+    label_col (str): Column name for true labels.
+    pred_col (str): Column name for predicted labels.
+
+    Returns
+    -------
+    float: Cohen's kappa coefficient.
+    """
+    return cohen_kappa_score(
+        df[label_col].str.lower(),
+        df[pred_col].str.lower(),
+    )
