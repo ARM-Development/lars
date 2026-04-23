@@ -74,14 +74,76 @@ def categories_from_codebook(codebook_path):
     return categories
 
 
+def guidelines_from_codebook(codebook_path):
+    """
+    Parse annotator guidelines from a LARS-format codebook markdown file.
+
+    The function looks for a heading containing "Annotator Guidelines" and
+    collects every bullet point (lines starting with ``-`` or ``*``) until
+    the next heading, stripping markdown emphasis markers.
+
+    Parameters
+    ----------
+    codebook_path : str
+        Path to the codebook markdown file.
+
+    Returns
+    -------
+    list of str
+        Ordered list of guideline strings.
+
+    Raises
+    ------
+    ValueError
+        If no annotator-guidelines section is found in the file.
+    """
+    with open(codebook_path, "r") as f:
+        text = f.read()
+
+    section_match = re.search(
+        r"(?:^|\n)#{1,6}[^\n]*Annotator Guidelines[^\n]*\n(.*?)(?=\n#{1,6} |\Z)",
+        text,
+        re.IGNORECASE | re.DOTALL,
+    )
+    if not section_match:
+        raise ValueError(
+            f"No 'Annotator Guidelines' section found in codebook: {codebook_path}"
+        )
+
+    guidelines = []
+    for line in section_match.group(1).splitlines():
+        line = line.strip()
+        if not line or not (line.startswith("-") or line.startswith("*")):
+            continue
+        # Strip the leading bullet character and clean markdown emphasis
+        text_line = line.lstrip("-* ").strip()
+        text_line = re.sub(r"\*{1,2}([^*]+)\*{1,2}", r"\1", text_line)
+        if text_line:
+            guidelines.append(text_line)
+
+    if not guidelines:
+        raise ValueError(
+            f"Annotator Guidelines section found but contained no bullet points: {codebook_path}"
+        )
+
+    return guidelines
+
+
 _DEFAULT_CODEBOOK = os.path.join(
     os.path.dirname(__file__), "..", "..", "CODEBOOK.md"
 )
-CODEBOOK_CATEGORIES = categories_from_codebook(
-    os.path.normpath(_DEFAULT_CODEBOOK)
-) if os.path.exists(os.path.normpath(_DEFAULT_CODEBOOK)) else None
+_default_codebook_path = os.path.normpath(_DEFAULT_CODEBOOK)
+CODEBOOK_CATEGORIES = (
+    categories_from_codebook(_default_codebook_path)
+    if os.path.exists(_default_codebook_path) else None
+)
+CODEBOOK_GUIDELINES = (
+    guidelines_from_codebook(_default_codebook_path)
+    if os.path.exists(_default_codebook_path) else None
+)
 
-async def label_radar_data(radar_df, model, categories=None, site="Bankhead National Forest",
+async def label_radar_data(radar_df, model, categories=None, guidelines=None,
+                           site="Bankhead National Forest",
                            verbose=True, vmin=-20, vmax=60, model_output_dir=None):
     """
     Label radar data using a given model.
@@ -90,6 +152,10 @@ async def label_radar_data(radar_df, model, categories=None, site="Bankhead Nati
     ----------
     radar_df (pd.DataFrame): DataFrame containing radar data to be labeled.
     model: Model used for labeling the radar data.
+    categories (dict, optional): Mapping of category name to description. Defaults to
+        DEFAULT_CATEGORIES. Pass CODEBOOK_CATEGORIES to use the bundled codebook.
+    guidelines (list of str, optional): Annotator guidelines appended to the prompt.
+        Pass CODEBOOK_GUIDELINES to use the bundled codebook guidelines.
     site: str: Radar site identifier.
     model_output_dir: str: Directory to save model outputs.
 
@@ -108,6 +174,9 @@ async def label_radar_data(radar_df, model, categories=None, site="Bankhead Nati
     for category, description in categories.items():
         prompt += f"{category}: {description}; "
     prompt += f"The reflectivity values range from {vmin} dBZ as indicated by the blue colors to {vmax} dBZ as indicated by the red colors."
+    if guidelines:
+        prompt += " When classifying, follow these annotator guidelines: "
+        prompt += " ".join(guidelines)
     radar_df["llm_label"] = ""
 
     for fi in radar_df["file_path"].values:
@@ -128,6 +197,7 @@ async def label_radar_data(radar_df, model, categories=None, site="Bankhead Nati
         if verbose:
              print("Category assigned:", output)
              print("Model output:", output_model)
+             print("Hand label:", radar_df.loc[radar_df["file_path"] == fi, "label"].values[0])
         if model_output_dir is not None:
             output_file = f"{model_output_dir}/{os.path.basename(fi).replace('.png', '_llm_output.txt')}"
             with open(output_file, "w") as f:

@@ -40,6 +40,7 @@ def preprocess_radar_data(file_path, output_path, date=None,
         if isinstance(date, str):
             date = [date]
         for date_str in date:
+            
             file_list = [f for f in file_list if date_str in f]
     out_df = pd.DataFrame(columns=['file_path', 'time', 'label', 'ref_min', 'ref_max'])
     if not "vmin" in kwargs:

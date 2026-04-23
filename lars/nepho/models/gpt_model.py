@@ -7,7 +7,7 @@ from ..config import config
 class GPTModel(BaseModel):
     """GPT model implementation using OpenAI API."""
     
-    def __init__(self, model_name: str = None, api_key: str = None):
+    def __init__(self, model_name: str = None, api_key: str = None, base_url: str = None):
         model_name = model_name or config.DEFAULT_GPT_MODEL
         super().__init__(model_name)
         
@@ -15,7 +15,7 @@ class GPTModel(BaseModel):
         if not self.api_key:
             raise ValueError("OpenAI API key is required. Set OPENAI_API_KEY environment variable.")
         
-        self.client = AsyncOpenAI(api_key=self.api_key)
+        self.client = AsyncOpenAI(api_key=self.api_key, base_url=base_url)
     
     async def chat(self, prompt: str, images: Optional[List[str]] = None) -> str:
         """Generate a response using GPT model."""
