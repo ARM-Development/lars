@@ -8,6 +8,7 @@ load_dotenv()
 class Config:
     # OpenAI Configuration
     OPENAI_API_KEY: Optional[str] = os.getenv("OPENAI_API_KEY")
+    OPENAI_BASE_URL: Optional[str] = os.getenv("OPENAI_BASE_URL")
     
     # Ollama Configuration
     OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")

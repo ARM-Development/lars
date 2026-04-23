@@ -1,5 +1,6 @@
 import asyncio
 import os
+import re
 
 DEFAULT_CATEGORIES = {"No precipitation": "No echoes greater than 10 dBZ present. A circle of echoes near radar site may be present due to ground clutter.",
                       "Stratiform rain": "Widespread echoes between 0 and 35 dBZ, not present as a circular pattern around the radar site.",
@@ -7,6 +8,78 @@ DEFAULT_CATEGORIES = {"No precipitation": "No echoes greater than 10 dBZ present
                       "Linear convection": "Cells must be organized into a linear structure with reflectivities between 40-60 dBZ",
                       "Supercells": "Supercells contain the classic hook echo and bounded weak echo region signatures with reflectivities above 55 dBZ",
                       "Unknown": "If you cannot confidently classify the radar image into one of the above categories"}
+
+def categories_from_codebook(codebook_path):
+    """
+    Parse label categories and descriptions from a LARS-format codebook markdown file.
+
+    The function looks for a markdown table under a heading containing
+    "Primary Classes" and extracts each ``| Label | Description |`` row.
+
+    Parameters
+    ----------
+    codebook_path : str
+        Path to the codebook markdown file.
+
+    Returns
+    -------
+    dict
+        Mapping of label name → description string, in the order they appear
+        in the codebook.
+
+    Raises
+    ------
+    ValueError
+        If no primary-classes table is found in the file.
+    """
+    with open(codebook_path, "r") as f:
+        text = f.read()
+
+    # Find the section that contains the primary classes table.
+    # We look for a heading with "Primary Classes" then capture everything
+    # until the next heading of equal or higher level.
+    section_match = re.search(
+        r"(?:^|\n)#{1,6}[^\n]*Primary Classes[^\n]*\n(.*?)(?=\n#{1,6} |\Z)",
+        text,
+        re.IGNORECASE | re.DOTALL,
+    )
+    if not section_match:
+        raise ValueError(
+            f"No 'Primary Classes' section found in codebook: {codebook_path}"
+        )
+
+    section = section_match.group(1)
+
+    # Parse table rows: | cell | cell | — skip the separator row (---|---).
+    categories = {}
+    for line in section.splitlines():
+        line = line.strip()
+        if not line.startswith("|") or re.fullmatch(r"[\|\s\-:]+", line):
+            continue
+        cells = [c.strip() for c in line.strip("|").split("|")]
+        if len(cells) < 2:
+            continue
+        label, description = cells[0], cells[1]
+        # Skip header row
+        if label.lower() in ("label", "class", "category"):
+            continue
+        if label:
+            categories[label] = description
+
+    if not categories:
+        raise ValueError(
+            f"Primary Classes table found but contained no rows: {codebook_path}"
+        )
+
+    return categories
+
+
+_DEFAULT_CODEBOOK = os.path.join(
+    os.path.dirname(__file__), "..", "..", "CODEBOOK.md"
+)
+CODEBOOK_CATEGORIES = categories_from_codebook(
+    os.path.normpath(_DEFAULT_CODEBOOK)
+) if os.path.exists(os.path.normpath(_DEFAULT_CODEBOOK)) else None
 
 async def label_radar_data(radar_df, model, categories=None, site="Bankhead National Forest",
                            verbose=True, vmin=-20, vmax=60, model_output_dir=None):
