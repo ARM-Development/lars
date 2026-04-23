@@ -1,5 +1,6 @@
 import io
 import pytest
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -65,3 +66,37 @@ def test_uses_gca_when_no_ax(sample_df):
     plt.sca(ax)
     plot_confusion_matrix(sample_df)
     assert ax.get_title() == "Confusion Matrix"
+
+
+def test_confusion_matrix_counts(sample_df):
+    """Labels sorted alphabetically: anvil=0, convective=1, stratiform=2.
+
+    True \\ Pred   anvil  convective  stratiform
+    anvil              1           0           0
+    convective         0           1           1
+    stratiform         0           1           2
+    """
+    from lars.util.confusion_matrix import plot_confusion_matrix
+
+    expected = np.array([[1, 0, 0],
+                         [0, 1, 1],
+                         [0, 1, 2]])
+
+    _, ax = plt.subplots()
+    plot_confusion_matrix(sample_df, ax=ax)
+    actual = ax.images[0].get_array()
+    np.testing.assert_array_equal(actual, expected)
+
+
+def test_normalized_confusion_matrix_values(sample_df):
+    """Row-normalized values for each true class."""
+    from lars.util.confusion_matrix import plot_confusion_matrix
+
+    expected = np.array([[1.0,       0.0,       0.0      ],
+                         [0.0,       0.5,       0.5      ],
+                         [0.0,       1.0 / 3.0, 2.0 / 3.0]])
+
+    _, ax = plt.subplots()
+    plot_confusion_matrix(sample_df, normalize="true", ax=ax)
+    actual = ax.images[0].get_array()
+    np.testing.assert_array_almost_equal(actual, expected)
