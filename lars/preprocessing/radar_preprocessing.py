@@ -71,13 +71,13 @@ def preprocess_radar_data(file_path, output_path, date=None,
             if sweep_mode in ('ppi', 'sector', 'azimuth_surveillance'):
                 fig = plt.figure(figsize=(size_px/dpi, size_px/dpi))
                 ax = plt.axes()
-                sweep["corrected_reflectivity"].where(
-                        sweep["corrected_reflectivity"] > min_ref).plot(x="x", y="y",
-                                                                        ax=ax,
-                                                                        add_colorbar=False,
-                                                                        **kwargs)
-                masked = sweep["corrected_reflectivity"].where(
-                            sweep["corrected_reflectivity"] > min_ref).values
+                sweep[radar_field].where(
+                        sweep[radar_field] > min_ref).plot(x="x", y="y",
+                                                           ax=ax,
+                                                           add_colorbar=False,
+                                                           **kwargs)
+                masked = sweep[radar_field].where(
+                            sweep[radar_field] > min_ref).values
                 ref_min = np.nanmin(masked)
                 ref_max = np.nanmax(masked)
                 ax.axis('off')
