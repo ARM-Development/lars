@@ -9,7 +9,7 @@ import cmweather    # noqa
 def preprocess_radar_data(file_path, output_path, date=None,
                           radar_field='corrected_reflectivity',
                           x_bounds=(-150000, 150000), y_bounds=(-150000, 150000),
-                          size_px=256, dpi=150,
+                          size_px=256, dpi=150, min_ref=-99.,
                           **kwargs):
     """
     Preprocess cf/Radial radar data from a given file path. This module will load the radar data,
@@ -27,6 +27,7 @@ def preprocess_radar_data(file_path, output_path, date=None,
     y_bounds (tuple): The y-axis bounds for plotting in meters.
     size_px (int): Width and height of the output PNG in pixels. Default is 256.
     dpi (int): Dots per inch for the saved figure. Default is 150.
+    min_ref (float): The minimum reflectivity to consider
 
     **kwargs:
 
