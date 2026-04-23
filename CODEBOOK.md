@@ -9,7 +9,7 @@ A reference guide for annotators labelling radar imagery with LARS. Use this cod
 The purpose of this section is to label radar imagery for warm-season precipitation
 
 - **Radar type:** ARM CSAPR2
-- **Data source:** csapr2cmac.c1 datastream
+- **Data source:** csapr2cfr.a1 datastream
 - **Geographic scope:** Bankhead National Forest
 - **Labelling task:** scene classification
 
@@ -21,15 +21,15 @@ The purpose of this section is to label radar imagery for warm-season precipitat
 
 | Field | Units | Description |
 |--------------------------|-------|-------------------------------------|
-| *corrected_reflectivity* | dBZ | Intensity of returned radar signal |
+| *reflectivity* | dBZ | Intensity of returned radar signal |
 
 
 ### 2.2 Image Format
 
 - **Spatial resolution:** 1 km by 1 km
 - **Temporal resolution:** 10-minute intervals
-- **Projection:** Polar coordinates projected onto 
-- **Color scale:** HomeyerRainbow colormap with vmin=-10 and vmax=60 dBZ
+- **Projection:** Polar coordinates projected onto a 256x256 image
+- **Color scale:** ChaseSpectral colormap with vmin=-10 and vmax=60
 
 ---
 
@@ -41,11 +41,11 @@ Each image or region-of-interest must be assigned exactly one primary class.
 
 | Label | Description |
 |------------------------|-----------------------------------------------------------------------------|
-| No Precipitation | No significant return; background noise only. It looks like a blue quasi-circle in the center of the image with some yellows mixed in. |
-| Stratiform Precipitation | Widespread, precipitation mostly below 40 dBZ (green colors) |
-| Isolated Convection | Intense, localized cores; high reflectivity (≥ 45 dBZ, localized dark orange to red colors) |
-| Linear Convection | A region of red colors (reflectivity > 45 dBZ) organized into a quasi-linear structure |
-| Ambiguous / Uncertain | Cannot be classified with confidence |
+| No Precipitation | No significant return; background noise only. The image will only have blue and black colors.|
+| Stratiform Precipitation | The image must have no pink colors. Green, yellow and red colors are present in a widespread blob. |
+| Isolated Convection | The image must have regions of dark red and pink colors. These dark red and pink regions must be separated by regions of black and blue, with no connection to other dark red and pink regions through yellow regions. Over half of the image must be blue or black. |
+| Mesoscale Convective System | A string or connected cluster of dark red and pink colors must be present in the image. This string can take on a curved structure. There can be more than one such string or cluster in the image. The dark red and pink colors in the clusters must be connected by yellow regions. |
+| Ambiguous / Uncertain | Cannot be classified with confidence. |
 
 
 ---
@@ -60,9 +60,10 @@ Each image or region-of-interest must be assigned exactly one primary class.
 
 ## 6. Annotator Guidelines
 
-- When in doubt, default to the **more conservative** class (e.g. Stratiform over Convective).
+- When in doubt, default to the class of the image preceeding it in time. 
 - Use the provided example gallery (Section 8) to calibrate your judgement.
 - Inter-annotator agreement should be checked periodically; raise disagreements with the team lead.
+- If two or more categories are present in regions of the image, classify with the most widespread category in the image.
 
 
 ---
@@ -84,9 +85,10 @@ Each image or region-of-interest must be assigned exactly one primary class.
 
 | Class | Example Image | Notes |
 |--------------------------|-----------------------------------|--------------------------|
-| Stratiform Rain | `examples/stratiform_01.png` | Clear bright band at 2 km |
-| Convective Rain | `examples/convective_01.png` | 55 dBZ core, anvil visible |
-| No Precipitation | `examples/clutter_01.png` | Stationary radial spokes |
+| Stratiform Rain | [![Stratiform Rain](examples/01_stratiform.png)](examples/01_stratiform.png) | Widespread yellows and reds |
+| Mesoscale Convective System | [![Mesoscale Convective System](examples/01_mcs.png)](examples/01_mcs.png) | Multiple lines of pinks and reds |
+| Isolated Convection | [![Isolated Convection](examples/01_isolated.png)](examples/01_isolated.png) | Isolated reds not inter-connected |
+| No Precipitation | [![No Precipitation](examples/01_clutter.png)](examples/01_clutter.png) | No greens, yellows, reds or pinks |
 
 ---
 
@@ -94,7 +96,7 @@ Each image or region-of-interest must be assigned exactly one primary class.
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | 2025-02-19 | Robert Jackson | Initial release |
+| 1.0 | 2025-04-23 | Robert Jackson | Initial release |
 
 ---
 
