@@ -22,6 +22,11 @@ classifiers = [
 ]
 dependencies = ["xradar", "scikit-learn", "python-dotenv", "aiohttp", "asksageclient", "pip_system_certs", "requests"]
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["lars"]
+exclude = ["notebooks*", "example*"]
+
 [project.optional-dependencies]
 dev = ["pytest>=6.0", "pytest-asyncio>=0.21", "black", "flake8", "openai", "xradar", "python-dotenv",
     "scikit-learn", "cmweather", "torchvision", "torch", "aiohttp", "matplotlib", "pandas",
