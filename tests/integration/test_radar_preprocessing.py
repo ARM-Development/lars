@@ -70,7 +70,11 @@ def test_dataframe_row_count(preprocessing_output):
 
 def test_dataframe_columns(preprocessing_output):
     _, label_df = preprocessing_output
-    assert set(label_df.columns) == {"file_path", "label", "ref_min", "ref_max"}
+    assert set(label_df.columns) == {
+        "file_path", "label", "ref_min", "ref_max",
+        "n_gates_10dbz", "n_gates_20dbz", "n_gates_30dbz", "n_gates_40dbz", "n_gates_50dbz",
+        "pct_gates_10dbz", "pct_gates_20dbz", "pct_gates_30dbz", "pct_gates_40dbz", "pct_gates_50dbz",
+    }
 
 
 def test_labels_are_unknown(preprocessing_output):

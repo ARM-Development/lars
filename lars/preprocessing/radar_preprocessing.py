@@ -11,6 +11,7 @@ def preprocess_radar_data(file_path, output_path, date=None,
                           radar_field='corrected_reflectivity',
                           x_bounds=(-150000, 150000), y_bounds=(-150000, 150000),
                           size_px=256, dpi=150, min_ref=-99.,
+                          dbz_thresholds=(10, 20, 30, 40, 50),
                           **kwargs):
     """
     Preprocess cf/Radial radar data from a given file path. This module will load the radar data,
@@ -28,7 +29,9 @@ def preprocess_radar_data(file_path, output_path, date=None,
     y_bounds (tuple): The y-axis bounds for plotting in meters.
     size_px (int): Width and height of the output PNG in pixels. Default is 256.
     dpi (int): Dots per inch for the saved figure. Default is 150.
-    min_ref (float): The minimum reflectivity to consider
+    min_ref (float): The minimum reflectivity to consider.
+    dbz_thresholds (sequence of float): Reflectivity thresholds in dBZ for which gate
+        counts and coverage percentages are computed. Default is (10, 20, 30, 40, 50).
 
     **kwargs:
 
@@ -38,8 +41,10 @@ def preprocess_radar_data(file_path, output_path, date=None,
     -------
     label_df: pd.DataFrame
         DataFrame containing labels, paths, and times for the radar data.
+        Includes n_gates_<T>dbz (count) and pct_gates_<T>dbz (% of total gates)
+        columns for each threshold T in dbz_thresholds.
     """
-    
+
     file_list = glob.glob(file_path + '/*.nc')
     if date is not None:
         if isinstance(date, str):
@@ -48,7 +53,11 @@ def preprocess_radar_data(file_path, output_path, date=None,
         for date_str in date:
             file_list2.extend([f for f in file_list if date_str in f])
         file_list = file_list2
-    out_df = pd.DataFrame(columns=['file_path', 'time', 'label', 'ref_min', 'ref_max'])
+    dbz_thresholds = list(dbz_thresholds)
+    count_cols = [f'n_gates_{t}dbz' for t in dbz_thresholds]
+    pct_cols = [f'pct_gates_{t}dbz' for t in dbz_thresholds]
+    out_df = pd.DataFrame(columns=['file_path', 'time', 'label', 'ref_min', 'ref_max']
+                          + count_cols + pct_cols)
     if not "vmin" in kwargs:
         kwargs['vmin'] = -20
     if not "vmax" in kwargs:
@@ -80,6 +89,9 @@ def preprocess_radar_data(file_path, output_path, date=None,
                             sweep[radar_field] > min_ref).values
                 ref_min = np.nanmin(masked)
                 ref_max = np.nanmax(masked)
+                total_gates = masked.size
+                gate_counts = [int(np.sum(masked > t)) for t in dbz_thresholds]
+                gate_pcts = [round(n / total_gates * 100, 4) for n in gate_counts]
                 ax.axis('off')
                 ax.set_title('')
                 ax.set_ylabel('')
@@ -96,7 +108,8 @@ def preprocess_radar_data(file_path, output_path, date=None,
                                          os.path.basename(file).replace('.nc', '.png')),
                             dpi=dpi, bbox_inches='tight', pad_inches=0)
                 plt.close(fig)
-                out_df.loc[len(out_df)] = [file_name, time_str, label, ref_min, ref_max]
+                out_df.loc[len(out_df)] = ([file_name, time_str, label, ref_min, ref_max]
+                                           + gate_counts + gate_pcts)
 
             else:
                 print(f"Sweep mode is not PPI or sector scan in {file}, skipping.")
