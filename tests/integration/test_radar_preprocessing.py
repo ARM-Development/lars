@@ -73,6 +73,7 @@ def test_dataframe_columns(preprocessing_output):
     assert set(label_df.columns) == {
         "file_path", "label", "ref_min", "ref_max",
         "n_gates_10dbz", "n_gates_20dbz", "n_gates_30dbz", "n_gates_40dbz", "n_gates_50dbz",
+        "pct_gates_10dbz", "pct_gates_20dbz", "pct_gates_30dbz", "pct_gates_40dbz", "pct_gates_50dbz",
     }
 
 
