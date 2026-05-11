@@ -174,6 +174,14 @@ async def label_radar_data(radar_df, model, categories=None, guidelines=None,
     for category, description in categories.items():
         prompt += f"{category}: {description}; "
     prompt += f"The reflectivity values range from {vmin} dBZ as indicated by the blue colors to {vmax} dBZ as indicated by the red colors."
+    for key in radar_df.columns:
+        if key.startswith("pct_gates_") and key.endswith("dbz"):
+            threshold = key[len("pct_gates_"):-len("dbz")]
+            prompt += f" The percentage of gates with relfectivity above {threshold} dBZ is provided as {key} in the data."
+        if key.startswith("n_gates_") and key.endswith("dbz"):
+            threshold = key[len("n_gates_"):-len("dbz")]
+            prompt += f" The number of gates with relfectivity above {threshold} dBZ is provided as {key} in the data."
+    
     if guidelines:
         prompt += " When classifying, follow these annotator guidelines: "
         prompt += " ".join(guidelines)
