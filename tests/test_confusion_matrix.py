@@ -26,6 +26,14 @@ def close_figures():
     plt.close("all")
 
 
+@pytest.mark.mpl_image_compare(tolerance=60)
+def test_plotting(sample_df):
+    from lars.util.confusion_matrix import plot_confusion_matrix
+    
+    fig, ax = plt.subplots()
+    plot_confusion_matrix(sample_df, ax=ax)
+    return fig
+
 def test_title_is_set(sample_df):
     from lars.util.confusion_matrix import plot_confusion_matrix
 
