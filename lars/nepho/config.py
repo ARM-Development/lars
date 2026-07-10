@@ -12,6 +12,9 @@ class Config:
     
     # Ollama Configuration
     OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+    # Context window size (tokens) passed to Ollama as num_ctx. Ollama's
+    # default is small (2048), which silently truncates long prompts/images.
+    OLLAMA_NUM_CTX: int = int(os.getenv("OLLAMA_NUM_CTX", "8192"))
     
     # Default models
     DEFAULT_GPT_MODEL: str = os.getenv("DEFAULT_GPT_MODEL", "gpt-4-vision-preview")
