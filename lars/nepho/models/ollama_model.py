@@ -8,11 +8,12 @@ from ..config import config
 class OllamaModel(BaseModel):
     """Ollama model implementation for local models."""
     
-    def __init__(self, model_name: str = None, base_url: str = None):
+    def __init__(self, model_name: str = None, base_url: str = None, num_ctx: int = None):
         model_name = model_name or config.DEFAULT_OLLAMA_MODEL
         super().__init__(model_name)
-        
+
         self.base_url = base_url or config.OLLAMA_BASE_URL
+        self.num_ctx = num_ctx or config.OLLAMA_NUM_CTX
         self.api_url = f"{self.base_url}/api/generate"
         self.chat_url = f"{self.base_url}/api/chat"
     
@@ -54,7 +55,7 @@ class OllamaModel(BaseModel):
                     raise RuntimeError(f"Failed to pull model {self.model_name}")
             
             # Prepare the request payload
-            if images and self.supports_vision():
+            if images:
                 # For vision models, encode images as base64
                 images_data = []
                 for image_path in images:
@@ -76,7 +77,8 @@ class OllamaModel(BaseModel):
                         "model": self.model_name,
                         "prompt": prompt,
                         "images": images_data,
-                        "stream": False
+                        "stream": False,
+                        "options": {"num_ctx": self.num_ctx}
                 }
 
                 # Use generate endpoint for vision models
@@ -88,7 +90,8 @@ class OllamaModel(BaseModel):
                     "messages": [
                         {"role": "user", "content": prompt}
                     ],
-                    "stream": False
+                    "stream": False,
+                    "options": {"num_ctx": self.num_ctx}
                 }
                 url = self.chat_url
             
@@ -104,19 +107,14 @@ class OllamaModel(BaseModel):
                         raise RuntimeError(f"Ollama API error: {response.status} - {error_text}")
                     
                     data = await response.json()
-                    
-                    if images and self.supports_vision():
+
+                    if images:
                         return data.get("response", "No response received")
                     else:
                         return data.get("message", {}).get("content", "No response received")
                         
         except Exception as e:
             raise RuntimeError(f"Error calling Ollama API: {e}")
-    
-    def supports_vision(self) -> bool:
-        """Check if this model supports vision capabilities."""
-        vision_models = ["llava", "bakllava", "moondream", "minicpm-v", "llava-llama2", "llava-llama3", "llama4:scout"]
-        return any(vision_model in self.model_name.lower() for vision_model in vision_models)
     
     async def list_available_models(self) -> List[str]:
         """List all available models in Ollama."""

@@ -46,8 +46,15 @@ Each image or region-of-interest must be assigned exactly one primary class.
 | Stratiform Precipitation | The image must have no pink colors. Green, yellow and red colors are present in a widespread blob. The percentage of gates greater than 50 dBZ must not exceed 0.02 percent. If it does exceed 0.02 percent, then classify as a mesoscale convective system. |
 | Isolated Convection | The image must have regions of yellow, red and pink colors. These dark red and pink regions must be separated by regions of black and blue, with no connection to other dark red and pink regions through yellow regions. Over half of the image must be blue or black. The percentage of gates with reflectivity greater than 30 dBZ must not exceed 1 percent. If it does exceed 1 percent, then classify as a mesoscale convective system. |
 | Mesoscale Convective System | A string or connected cluster of dark red and pink colors must be present in the image. This string can take on a curved structure. There can be more than one such string or cluster in the image. The dark red and pink colors in the clusters must be connected by yellow regions. |
-| Ambiguous / Uncertain | Cannot be classified with confidence. |
+| Ambiguous | Cannot be classified with confidence. |
 
+> **Note on enforcement.** Only the quantitative reflectivity thresholds in the
+> descriptions above (e.g. "percentage of gates greater than X dBZ must not
+> exceed Y percent") are validated automatically, and only when the
+> corresponding `pct_gates_*` / `n_gates_*` columns are present in the data.
+> Spatial and topological criteria — "separated by regions of…", "connected
+> cluster", "curved structure", "widespread blob", "over half of the image" —
+> are judged by the annotator or model and are **not** checked programmatically.
 
 ---
 
@@ -61,10 +68,20 @@ Each image or region-of-interest must be assigned exactly one primary class.
 
 ## 6. Annotator Guidelines
 
-- When in doubt, default to the class of the image preceeding it in time. 
+The bullets in this section are passed verbatim to automated labelling models,
+so they must be self-contained for a single image with no external context.
+
+- If two or more categories are present in regions of the image, classify with the most widespread category in the image.
+
+### 6.1 Human Annotators Only
+
+These apply to human annotators and the review process. They are intentionally
+kept out of the bullet list above because an automated model labels each image
+independently, with no temporal context and no access to the example gallery.
+
+- When in doubt, default to the class of the image preceding it in time.
 - Use the provided example gallery (Section 8) to calibrate your judgement.
 - Inter-annotator agreement should be checked periodically; raise disagreements with the team lead.
-- If two or more categories are present in regions of the image, classify with the most widespread category in the image.
 
 
 ---
@@ -86,7 +103,7 @@ Each image or region-of-interest must be assigned exactly one primary class.
 
 | Class | Example Image | Notes |
 |--------------------------|-----------------------------------|--------------------------|
-| Stratiform Rain | [![Stratiform Rain](examples/01_stratiform.png)](examples/01_stratiform.png) | Widespread yellows and reds |
+| Stratiform Precipitation | [![Stratiform Precipitation](examples/01_stratiform.png)](examples/01_stratiform.png) | Widespread yellows and reds |
 | Mesoscale Convective System | [![Mesoscale Convective System](examples/01_mcs.png)](examples/01_mcs.png) | Multiple lines of pinks and reds |
 | Isolated Convection | [![Isolated Convection](examples/01_isolated.png)](examples/01_isolated.png) | Isolated reds not inter-connected |
 | No Precipitation | [![No Precipitation](examples/01_clutter.png)](examples/01_clutter.png) | No greens, yellows, reds or pinks |
