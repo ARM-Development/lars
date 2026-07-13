@@ -42,9 +42,9 @@ Each image or region-of-interest must be assigned exactly one primary class.
 
 | Label | Description |
 |------------------------|-----------------------------------------------------------------------------|
-| No Precipitation | No significant return; background noise only. The image will only have blue and black colors. The percentage of gates greater than 50 dBZ must not exceed 0.002 percent. If it does exceed 0.002 percent, then classify as Isolated Convection. |
-| Stratiform Precipitation | The image must have no pink colors. Green, yellow and red colors are present in a widespread blob. The percentage of gates greater than 50 dBZ must not exceed 0.02 percent. If it does exceed 0.02 percent, then classify as a mesoscale convective system. |
-| Isolated Convection | The image must have regions of yellow, red and pink colors. These dark red and pink regions must be separated by regions of black and blue, with no connection to other dark red and pink regions through yellow regions. Over half of the image must be blue or black. The percentage of gates with reflectivity greater than 30 dBZ must not exceed 1 percent. If it does exceed 1 percent, then classify as a mesoscale convective system. |
+| No Precipitation | No significant return; background noise only. The image will only have blue and black colors. The percentage of gates greater than 50 dBZ must not exceed 0.005 percent. If it does exceed 0.005 percent, then classify as Isolated Convection. |
+| Stratiform Precipitation | The image must have no pink colors. Green, yellow and red colors are present in a widespread blob. The percentage of gates greater than 50 dBZ must not exceed 0.035 percent. If it does exceed 0.035 percent, then classify as a mesoscale convective system. |
+| Isolated Convection | The image must have regions of yellow, red and pink colors. These dark red and pink regions must be separated by regions of black and blue, with no connection to other dark red and pink regions through yellow regions. Over half of the image must be blue or black. The percentage of gates with reflectivity greater than 30 dBZ must not exceed 1.3 percent. If it does exceed 1.3 percent, then classify as a mesoscale convective system. |
 | Mesoscale Convective System | A string or connected cluster of dark red and pink colors must be present in the image. This string can take on a curved structure. There can be more than one such string or cluster in the image. The dark red and pink colors in the clusters must be connected by yellow regions. |
 | Ambiguous | Cannot be classified with confidence. |
 
@@ -115,6 +115,7 @@ independently, with no temporal context and no access to the example gallery.
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2025-04-23 | Robert Jackson | Initial release |
+| 1.1 | 2026-07-13 | Robert Jackson | Calibrated reflectivity coverage thresholds against 1,212 hand-labelled CSAPR2 scenes: No Precipitation pct_gates_50dBZ 0.002→0.005 (clears observed No-Precip envelope); Stratiform pct_gates_50dBZ 0.02→0.035 (Youden-optimal vs MCS); Isolated Convection pct_gates_30dBZ 1.0→1.3 (Youden-optimal vs MCS). |
 
 ---
 
