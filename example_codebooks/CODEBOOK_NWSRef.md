@@ -69,11 +69,9 @@ Each image or region-of-interest must be assigned exactly one primary class.
 ## 6. Annotator Guidelines
 
 The bullets in this section are passed verbatim to automated labelling models,
-so they must be self-contained for a single image with no external context, outside of
-the label of the previous timestep.
+so they must be self-contained for a single image with no external context.
 
 - If two or more categories are present in regions of the image, classify with the most widespread category in the image.
-- When in doubt, default to the class of the image(s) preceding it in time.
 
 ### 6.1 Human Annotators Only
 
