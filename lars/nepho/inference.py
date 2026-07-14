@@ -493,7 +493,8 @@ async def label_radar_data(radar_df, model, categories=None, guidelines=None,
                            mlflow_experiment=None, mlflow_run_name=None,
                            mlflow_tracking_uri=None, codebook_path=None,
                            site="Bankhead National Forest",
-                           verbose=True, vmin=None, vmax=None, model_output_dir=None):
+                           verbose=True, vmin=None, vmax=None, model_output_dir=None,
+                           use_previous_labels=False):
     """
     Label radar data using a given model.
 
@@ -535,6 +536,8 @@ async def label_radar_data(radar_df, model, categories=None, guidelines=None,
         ``colormap_from_codebook``; otherwise they fall back to
         ``DEFAULT_VMIN`` (-20) and ``DEFAULT_VMAX`` (60).
     model_output_dir: str: Directory to save model outputs.
+    use_previous_labels: bool or int: If True, the function will use the previous *use_previous_labels* 
+        labels as an additional input to the model for labeling. This can be useful if the model is being used to refine or validate existing labels.
 
     Returns
     -------
@@ -576,9 +579,15 @@ async def label_radar_data(radar_df, model, categories=None, guidelines=None,
 
     for fi in radar_df["file_path"].values:
         time = radar_df.loc[radar_df["file_path"] == fi, "time"].values[0]
+        cur_index = radar_df.index[radar_df["file_path"] == fi][0]
         prompt_with_time = prompt + f"Please provide just the category label for the radar image taken at time {time}."      
         prompt_with_time = prompt_with_time + "Do not provide your reasoning for your selection, just the category."
-
+        if use_previous_labels:
+            for i in range(use_previous_labels):
+                if cur_index - i - 1 >= 0:
+                    prev_label = radar_df.loc[cur_index - i - 1, "label"]
+                    prompt_with_time += f" The label for the previous radar image taken at time {radar_df.loc[cur_index - i - 1, 'time']} is {prev_label}."
+                    
         output_model = await model.chat(prompt_with_time, images=[fi])
         # Find the category label in the output
         output_model = output_model.strip()

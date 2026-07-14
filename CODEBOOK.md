@@ -23,14 +23,14 @@ The purpose of this section is to label radar imagery for warm-season precipitat
 |--------------------------|-------|-------------------------------------|
 | *reflectivity* | dBZ | Intensity of returned radar signal |
 | n_gates_50dBZ | percent | The percentage of gates greater than 50 dBZ |
-
+| n_gates_30dBZ | percent | The percentage of gates greater than 30 dBZ |
 
 ### 2.2 Image Format
 
 - **Spatial resolution:** 1 km by 1 km
 - **Temporal resolution:** 10-minute intervals
-- **Projection:** Polar coordinates projected onto a 256x256 image
-- **Color scale:** ChaseSpectral colormap with vmin=-10 and vmax=60
+- **Projection:** Polar coordinates projected onto a 2048x2048 image
+- **Color scale:** NWSRef colormap with vmin=-20 and vmax=80
 
 ---
 
@@ -42,10 +42,10 @@ Each image or region-of-interest must be assigned exactly one primary class.
 
 | Label | Description |
 |------------------------|-----------------------------------------------------------------------------|
-| No Precipitation | No significant return; background noise only. The image will only have blue and black colors. The percentage of gates greater than 50 dBZ must not exceed 0.005 percent. If it does exceed 0.005 percent, then classify as Isolated Convection. |
-| Stratiform Precipitation | The image must have no pink colors. Green, yellow and red colors are present in a widespread blob. The percentage of gates greater than 50 dBZ must not exceed 0.035 percent. If it does exceed 0.035 percent, then classify as a mesoscale convective system. |
-| Isolated Convection | The image must have regions of yellow, red and pink colors. These dark red and pink regions must be separated by regions of black and blue, with no connection to other dark red and pink regions through yellow regions. Over half of the image must be blue or black. The percentage of gates with reflectivity greater than 30 dBZ must not exceed 1.3 percent. If it does exceed 1.3 percent, then classify as a mesoscale convective system. |
-| Mesoscale Convective System | A string or connected cluster of dark red and pink colors must be present in the image. This string can take on a curved structure. There can be more than one such string or cluster in the image. The dark red and pink colors in the clusters must be connected by yellow regions. |
+| No Precipitation | No significant return; background noise only. The image will be over 80 percent blue colors. The percentage of gates greater than 50 dBZ must not exceed 0.005 percent. If it does exceed 0.005 percent, then classify as Isolated Convection. |
+| Stratiform Precipitation | The image must have no dark red or pink colors. Green, yellow, and light red colors are present in a widespread blob. The percentage of gates greater than 50 dBZ must not exceed 0.035 percent. If it does exceed 0.035 percent, then classify as a mesoscale convective system. |
+| Isolated Convection | The image must have regions of yellow and dark red colors. These dark red regions must be separated by regions of blue, with no connection to other dark red and pink regions through yellow regions. Over half of the image must be blue or black. The percentage of gates with reflectivity greater than 30 dBZ must not exceed 1.3 percent. If it does exceed 1.3 percent, then classify as a mesoscale convective system. |
+| Mesoscale Convective System | A string or connected cluster of dark red colors must be present in the image. This string can take on a curved structure. There can be more than one such string or cluster in the image. The dark red colors in the clusters must be connected by yellow or green regions. |
 | Ambiguous | Cannot be classified with confidence. |
 
 > **Note on enforcement.** Only the quantitative reflectivity thresholds in the
@@ -69,9 +69,11 @@ Each image or region-of-interest must be assigned exactly one primary class.
 ## 6. Annotator Guidelines
 
 The bullets in this section are passed verbatim to automated labelling models,
-so they must be self-contained for a single image with no external context.
+so they must be self-contained for a single image with no external context, outside of
+the label of the previous timestep.
 
 - If two or more categories are present in regions of the image, classify with the most widespread category in the image.
+- When in doubt, default to the class of the image(s) preceding it in time.
 
 ### 6.1 Human Annotators Only
 
@@ -103,10 +105,10 @@ independently, with no temporal context and no access to the example gallery.
 
 | Class | Example Image | Notes |
 |--------------------------|-----------------------------------|--------------------------|
-| Stratiform Precipitation | [![Stratiform Precipitation](examples/01_stratiform.png)](examples/01_stratiform.png) | Widespread yellows and reds |
-| Mesoscale Convective System | [![Mesoscale Convective System](examples/01_mcs.png)](examples/01_mcs.png) | Multiple lines of pinks and reds |
-| Isolated Convection | [![Isolated Convection](examples/01_isolated.png)](examples/01_isolated.png) | Isolated reds not inter-connected |
-| No Precipitation | [![No Precipitation](examples/01_clutter.png)](examples/01_clutter.png) | No greens, yellows, reds or pinks |
+| Stratiform Precipitation | [![Stratiform Precipitation](../examples/01_stratiform.png)](examples/01_stratiform.png) | Widespread yellows and reds |
+| Mesoscale Convective System | [![Mesoscale Convective System](../examples/01_mcs.png)](examples/01_mcs.png) | Multiple lines of pinks and reds |
+| Isolated Convection | [![Isolated Convection](../examples/01_isolated.png)](examples/01_isolated.png) | Isolated reds not inter-connected |
+| No Precipitation | [![No Precipitation](../examples/01_clutter.png)](examples/01_clutter.png) | No greens, yellows, reds or pinks |
 
 ---
 
