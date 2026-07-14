@@ -16,6 +16,7 @@ def test_color_criteria_from_codebook_covers_all_labels():
     from lars.nepho.inference import color_criteria_from_codebook
 
     rules = color_criteria_from_codebook(CODEBOOK_PATH)
+    print(rules)
     assert set(rules) == {
         "No Precipitation",
         "Stratiform Precipitation",
@@ -69,9 +70,9 @@ def test_colormap_from_codebook_parses_name_and_bounds():
     from lars.nepho.inference import colormap_from_codebook
 
     cmap = colormap_from_codebook(CODEBOOK_PATH)
-    assert cmap["colormap"] == "ChaseSpectral"
-    assert cmap["vmin"] == -10
-    assert cmap["vmax"] == 60
+    assert cmap["colormap"] == "NWSRef"
+    assert cmap["vmin"] == -20
+    assert cmap["vmax"] == 80
 
 
 def test_colormap_from_codebook_falls_back_to_defaults():

@@ -325,6 +325,10 @@ _COLOR_DOMINANCE_RE = re.compile(
     rf"\b(?:over|more\s+than)\s+half\s+(?:of\s+the\s+image\s+)?must\s+be\s+{_COLOR_LIST_RE}\b",
     re.IGNORECASE,
 )
+_PERCENT_DOMINANCE_RE = re.compile(
+    r"\b(?:over|more\s+than)\s+(\d+(?:\.\d+)?)\s*percent\b",
+    re.IGNORECASE,
+)
 
 
 def _extract_colors(text):
@@ -421,6 +425,23 @@ def color_criteria_from_codebook(codebook_path,
             m = _COLOR_DOMINANCE_RE.search(sentence)
             if m:
                 colors = _extract_colors(m.group(1))
+                color_max_hi = max(
+                    (COLOR_DBZ_RANGE[c][1] or 999)
+                    for c in colors if c in COLOR_DBZ_RANGE
+                )
+                if color_max_hi < 999:
+                    rules.append({
+                        "kind": "max_pct_above",
+                        "field": f"pct_gates_{int(color_max_hi)}dbz",
+                        "value": 50.0,
+                        "colors": colors,
+                        "phrase": sentence,
+                    })
+                continue
+
+            percent_m = _PERCENT_DOMINANCE_RE.search(sentence)
+            if percent_m:
+                colors = _extract_colors(sentence)
                 color_max_hi = max(
                     (COLOR_DBZ_RANGE[c][1] or 999)
                     for c in colors if c in COLOR_DBZ_RANGE
