@@ -153,6 +153,63 @@ def apply_criteria_to_labels(df, criteria, label_column='label',
     return df
 
 
+def combine_labels(csv_files, source_names, label_column='label', match_on='file_path'):
+    """
+    Combine labels from multiple CSV files (human or AI) into one long-format
+    DataFrame, tagged with each file's source.
+
+    Each CSV in ``csv_files`` is loaded and stacked into a single DataFrame
+    with one row per (item, source) pair, suitable for downstream groupby or
+    majority-vote analysis across labelers.
+
+    Parameters
+    ----------
+    csv_files (list of str): Paths to the label CSV files to combine.
+    source_names (list of str): Name identifying the labeler/source of each
+        file in ``csv_files``, in the same order. Populates the 'source'
+        column of the output.
+    label_column (str): Name of the column containing labels in each input
+        file. Default 'label'.
+    match_on (str): Either 'time' (match on the 'time' column, or the row
+        index if no 'time' column is present) or 'file_path' (match on the
+        basename of the 'file_path' column). Default 'file_path'.
+
+    Returns
+    -------
+    pd.DataFrame
+        Long-format DataFrame with columns [match_on, label_column, 'source'],
+        one row per (item, source) pair loaded from the input files.
+
+    Raises
+    ------
+    ValueError
+        If ``csv_files`` and ``source_names`` have different lengths, or
+        ``match_on`` is not 'time' or 'file_path'.
+    """
+    if len(csv_files) != len(source_names):
+        raise ValueError("csv_files and source_names must have the same length")
+    if match_on not in ('time', 'file_path'):
+        raise ValueError("match_on must be either 'time' or 'file_path'")
+
+    combined = []
+    for csv_file, source_name in zip(csv_files, source_names):
+        df = load_labels(csv_file)
+        if match_on == 'file_path':
+            key = df['file_path'].apply(os.path.basename)
+        elif 'time' in df.columns:
+            key = df['time']
+        else:
+            key = df.index.to_series(index=df.index)
+        print(df)
+        combined.append(pd.DataFrame({
+            match_on: key.values,
+            label_column: df[label_column].values,
+            'source': source_name,
+        }))
+
+    return pd.concat(combined, ignore_index=True)
+
+
 def save_labels(label_df, output_file):
     """
     Save labels to a CSV file.

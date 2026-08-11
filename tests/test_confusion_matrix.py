@@ -120,3 +120,23 @@ def test_normalized_confusion_matrix_values(sample_df):
     plot_confusion_matrix(sample_df, normalize="true", ax=ax)
     actual = ax.images[0].get_array()
     np.testing.assert_array_almost_equal(actual, expected)
+
+
+def test_combines_labels_from_true_and_pred():
+    from lars.util.confusion_matrix import plot_confusion_matrix
+
+    df = pd.DataFrame({
+        "label": ["a", "b", "a"],
+        "llm_label": ["a", "c", "b"],
+    })
+
+    _, ax = plt.subplots()
+    plot_confusion_matrix(df, ax=ax)
+
+    expected = np.array([
+        [1, 1, 0],
+        [0, 0, 1],
+        [0, 0, 0],
+    ])
+    actual = ax.images[0].get_array()
+    np.testing.assert_array_equal(actual, expected)
