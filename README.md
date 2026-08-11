@@ -7,4 +7,4 @@ LARS is based around Nepho, a parallel-mLLM chatbot interface designed by @thele
 * A module that uses mLLMs to automatically generate labelled radar images for supervised learning
 * Modules for various fine tuned ImageNet/ViT models for classifying radar scenes.
 
-Authors: Bobby Jackson, Le Chen, Seongha Park, Scott Collis
+Authors: Bobby Jackson, Le Chen, Scott Collis
