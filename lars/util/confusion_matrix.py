@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, cohen_kappa_score
 from sklearn.preprocessing import LabelEncoder
 
-def plot_confusion_matrix(df, label_col='label', pred_col='llm_label', normalize=None, ax=None):
+def plot_confusion_matrix(df, label_col='label', pred_col='llm_label', normalize=None, ax=None,
+                          x_label=None, y_label=None):
     """
     Plot a confusion matrix using true and predicted labels from a DataFrame.
 
@@ -13,23 +14,34 @@ def plot_confusion_matrix(df, label_col='label', pred_col='llm_label', normalize
     pred_col (str): Column name for predicted labels.
     normalize (str or None): Normalization mode for confusion matrix.
     ax (matplotlib axis handle): The axis handle to plot on. Set to None to use the current axis.
+    x_label (str or None): Label for the x-axis.
+    y_label (str or None): Label for the y-axis.
 
     Returns
     -------
     None
     """
+    true_values = df[label_col].str.lower()
+    pred_values = df[pred_col].str.lower()
+    labels = sorted(set(true_values) | set(pred_values))
+
     le = LabelEncoder()
-    true_labels = le.fit_transform(df[label_col].str.lower())
-    pred_labels = le.transform(df[pred_col].str.lower())
+    le.fit(labels)
+    true_labels = le.transform(true_values)
+    pred_labels = le.transform(pred_values)
+
     if ax is None:
         ax = plt.gca()
 
     cm = confusion_matrix(true_labels, pred_labels, normalize=normalize)
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=le.classes_,)
-    
-    
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=le.classes_)
+
     disp.plot(ax=ax, cmap=plt.cm.Blues, xticks_rotation=45)
     ax.set_title('Confusion Matrix')
+    if x_label is not None:
+        ax.set_xlabel(x_label)
+    if y_label is not None:
+        ax.set_ylabel(y_label)
 
 
 def calculate_cohen_kappa(df, label_col='label', pred_col='llm_label'):

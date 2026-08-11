@@ -16,7 +16,6 @@ def test_color_criteria_from_codebook_covers_all_labels():
     from lars.nepho.inference import color_criteria_from_codebook
 
     rules = color_criteria_from_codebook(CODEBOOK_PATH)
-    print(rules)
     assert set(rules) == {
         "No Precipitation",
         "Stratiform Precipitation",
