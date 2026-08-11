@@ -8,9 +8,10 @@ from ..config import config
 class OllamaModel(BaseModel):
     """Ollama model implementation for local models."""
     
-    def __init__(self, model_name: str = None, base_url: str = None, num_ctx: int = None):
+    def __init__(self, model_name: str = None, base_url: str = None, num_ctx: int = None,
+                 downscale_factor: Optional[int] = None):
         model_name = model_name or config.DEFAULT_OLLAMA_MODEL
-        super().__init__(model_name)
+        super().__init__(model_name, downscale_factor=downscale_factor)
 
         self.base_url = base_url or config.OLLAMA_BASE_URL
         self.num_ctx = num_ctx or config.OLLAMA_NUM_CTX

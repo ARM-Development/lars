@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 from typing import List, Optional
 from .base_model import BaseModel
 from ..config import config
@@ -10,8 +11,8 @@ from asksageclient import AskSageClient
 class AskSageModel(BaseModel):
     """Ask Sage model implementation using the asksageclient API."""
 
-    def __init__(self, model_name: str, credentials_json: str):
-        super().__init__(model_name)
+    def __init__(self, model_name: str, credentials_json: str, downscale_factor: Optional[int] = None):
+        super().__init__(model_name, downscale_factor=downscale_factor)
         self.credentials = _load_credentials(credentials_json)
         self.api_key = self.credentials['credentials']['api_key']
         self.email = self.credentials['credentials']['Ask_sage_user_info']['username']
@@ -28,20 +29,33 @@ class AskSageModel(BaseModel):
             loop = asyncio.get_event_loop()
 
             if images and self.supports_vision():
-                for image_path in images:
-                    if not self.validate_image(image_path):
-                        raise ValueError(f"Invalid image: {image_path}")
+                temp_paths = []
+                try:
+                    prepared_images = []
+                    for image_path in images:
+                        if not self.validate_image(image_path):
+                            raise ValueError(f"Invalid image: {image_path}")
 
-                # query_with_file accepts a single path or a list
-                file_arg = images[0] if len(images) == 1 else images
-                response = await loop.run_in_executor(
-                    None,
-                    lambda: self.client.query_with_file(
-                        message=prompt,
-                        file=file_arg,
-                        model=self.model_name
+                        if self.downscale_factor and self.downscale_factor > 1:
+                            prepared_path = self._downscale_image(image_path)
+                            temp_paths.append(prepared_path)
+                        else:
+                            prepared_path = image_path
+                        prepared_images.append(prepared_path)
+
+                    # query_with_file accepts a single path or a list
+                    file_arg = prepared_images[0] if len(prepared_images) == 1 else prepared_images
+                    response = await loop.run_in_executor(
+                        None,
+                        lambda: self.client.query_with_file(
+                            message=prompt,
+                            file=file_arg,
+                            model=self.model_name
+                        )
                     )
-                )
+                finally:
+                    for temp_path in temp_paths:
+                        os.remove(temp_path)
             else:
                 response = await loop.run_in_executor(
                     None,
