@@ -93,4 +93,4 @@ def plot_kappa_matrix(df, columns=None, labels=None, ax=None, cmap=None, annot=T
     ax.figure.colorbar(im, ax=ax)
     ax.set_title("Cohen's Kappa Matrix")
 
-    return ax, matrix.values
+    return ax
