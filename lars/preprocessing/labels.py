@@ -1,6 +1,44 @@
 import pandas as pd
 import os
 
+# Maps non-canonical label spellings (matched case- and whitespace-
+# insensitively) to their canonical codebook form.
+STANDARD_LABEL_MAP = {
+    "ambiguous": "Ambiguous / Uncertain",
+    "unknown": "Ambiguous / Uncertain",
+    "stratiform": "Stratiform Precipitation",
+    "ambiguous / uncertain": "Ambiguous / Uncertain",
+}
+
+
+def standardize_labels(df, label_column='label'):
+    """
+    Standardize inconsistent label spellings to their canonical codebook form.
+
+    Maps the ambiguous/unknown labels ('Ambiguous', 'UNKNOWN', and any casing
+    thereof) to the single canonical value 'Ambiguous / Uncertain', and maps
+    the bare 'Stratiform' label to the full codebook name 'Stratiform
+    Precipitation'. Matching is case- and whitespace-insensitive. Values that
+    don't match one of these variants (including labels already in their
+    canonical form, e.g. 'Stratiform Precipitation') are left unchanged.
+
+    Parameters
+    ----------
+    df (pd.DataFrame): DataFrame containing a label column to standardize.
+    label_column (str): Name of the column containing labels. Default 'label'.
+
+    Returns
+    -------
+    pd.DataFrame
+        A copy of ``df`` with standardized values in ``label_column``.
+    """
+    df = df.copy()
+    keys = df[label_column].astype(str).str.strip().str.lower()
+    mapped = keys.map(STANDARD_LABEL_MAP)
+    df[label_column] = mapped.where(mapped.notna(), df[label_column])
+    return df
+
+
 def change_file_path(radar_df, new_path):
     """
     Change the file paths in the radar DataFrame to a new path.
