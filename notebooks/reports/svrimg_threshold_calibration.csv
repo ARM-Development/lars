@@ -1,0 +1,7 @@
+threshold_dbz,column,auc,oriented_auc,direction,youden_cut_pct,sensitivity,specificity,keep_in_codebook
+10,pct_gates_10dbz,0.9026,0.9026,higher=QLCS,29.9849,0.9145,0.7468,True
+20,pct_gates_20dbz,0.9288,0.9288,higher=QLCS,18.0039,0.8706,0.8318,True
+30,pct_gates_30dbz,0.9346,0.9346,higher=QLCS,6.4771,0.8947,0.8244,True
+40,pct_gates_40dbz,0.889,0.889,higher=QLCS,2.3519,0.7829,0.8281,True
+50,pct_gates_50dbz,0.6006,0.6006,higher=QLCS,0.3136,0.5658,0.6081,False
+60,pct_gates_60dbz,0.3161,0.6839,higher=Cellular,0.0,0.739,0.597,True
