@@ -8,6 +8,9 @@ STANDARD_LABEL_MAP = {
     "unknown": "Ambiguous / Uncertain",
     "stratiform": "Stratiform Precipitation",
     "ambiguous / uncertain": "Ambiguous / Uncertain",
+    # SVRIMG convective mode classes (see example_codebooks/CODEBOOK_SVRIMG.md).
+    "cellular": "Cellular",
+    "qlcs": "QLCS",
 }
 
 
