@@ -2,6 +2,8 @@ import asyncio
 import os
 import re
 
+import pandas as pd
+
 from ..preprocessing.labels import apply_criteria_to_labels
 
 DEFAULT_CATEGORIES = {"No precipitation": "No echoes greater than 10 dBZ present. A circle of echoes near radar site may be present due to ground clutter.",
@@ -515,7 +517,8 @@ async def label_radar_data(radar_df, model, categories=None, guidelines=None,
                            mlflow_tracking_uri=None, codebook_path=None,
                            site="Bankhead National Forest",
                            verbose=True, vmin=None, vmax=None, model_output_dir=None,
-                           use_previous_labels=False):
+                           use_previous_labels=False,
+                           previous_label_source="hand"):
     """
     Label radar data using a given model.
 
@@ -559,6 +562,28 @@ async def label_radar_data(radar_df, model, categories=None, guidelines=None,
     model_output_dir: str: Directory to save model outputs.
     use_previous_labels: bool or int: If True, the function will use the previous *use_previous_labels* 
         labels as an additional input to the model for labeling. This can be useful if the model is being used to refine or validate existing labels.
+    previous_label_source (str): Where those previous labels come from, either
+        ``"hand"`` (default) or ``"llm"``.
+
+        ``"hand"`` injects the *human* label of the preceding scan, read from
+        the ``label`` column. Note what this implies for evaluation: when scans
+        are closely spaced their labels rarely change, so the previous hand
+        label is close to the answer. On the BNF CSAPR2 set (~10 minute
+        spacing) simply copying it -- with no image at all -- reaches 0.80
+        macro-F1 against a two-human Dawid-Skene consensus, which beats every
+        model configuration measured. Results under this setting therefore say
+        more about that leaked hint than about reading radar imagery, and are
+        not comparable with ``use_previous_labels=0`` runs.
+
+        ``"llm"`` instead injects the model's *own* previous prediction, read
+        from ``llm_label``, which the loop has already filled in for the
+        preceding row. No ground truth enters the prompt, so the run measures
+        temporal consistency rather than label leakage, and matches what is
+        available at inference time. The trade-off is that an early mistake can
+        propagate forward.
+
+        Requires the frame to be in chronological order with a contiguous
+        index, since the lookup is positional.
 
     Returns
     -------
@@ -581,9 +606,13 @@ async def label_radar_data(radar_df, model, categories=None, guidelines=None,
                 f" The radar site is the ARM Facility {site} site." \
              " Please classify the weather depicted into one of the following categories: " \
              f"{', '.join(categories) if categories else ', '.join(categories)}."
-    prompt += "Each category is defined as follows: "
-    for category, description in categories.items():
-        prompt += f"{category}: {description}; "
+    # A category map with no descriptions at all is the "no codebook" baseline:
+    # the model gets the class names and nothing else. Emitting the definitions
+    # header followed by empty definitions would just be noise, so skip it.
+    if any(description for description in categories.values()):
+        prompt += "Each category is defined as follows: "
+        for category, description in categories.items():
+            prompt += f"{category}: {description}; "
     prompt += f"The reflectivity values range from {vmin} dBZ as indicated by the blue colors to {vmax} dBZ as indicated by the red colors."
     for key in radar_df.columns:
         if key.startswith("pct_gates_") and key.endswith("dbz"):
@@ -604,9 +633,15 @@ async def label_radar_data(radar_df, model, categories=None, guidelines=None,
         prompt_with_time = prompt + f"Please provide just the category label for the radar image taken at time {time}."      
         prompt_with_time = prompt_with_time + "Do not provide your reasoning for your selection, just the category."
         if use_previous_labels:
+            prev_column = "label" if previous_label_source == "hand" else "llm_label"
             for i in range(use_previous_labels):
                 if cur_index - i - 1 >= 0:
-                    prev_label = radar_df.loc[cur_index - i - 1, "label"]
+                    prev_label = radar_df.loc[cur_index - i - 1, prev_column]
+                    # In "llm" mode the previous row has already been labelled,
+                    # because this loop walks the frame in index order. The guard
+                    # is for the first row of a frame, where nothing precedes it.
+                    if prev_label is None or prev_label == "" or pd.isna(prev_label):
+                        continue
                     prompt_with_time += f" The label for the previous radar image taken at time {radar_df.loc[cur_index - i - 1, 'time']} is {prev_label}."
                     
         output_model = await model.chat(prompt_with_time, images=[fi])
