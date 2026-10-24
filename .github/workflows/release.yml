@@ -1,5 +1,8 @@
 name: Release to PyPI
 
+permissions:
+  contents: read
+
 on:
   release:
     types: [published]
@@ -12,15 +15,18 @@ jobs:
       id-token: write  # required for PyPI trusted publisher (OIDC)
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12"
+          python-version: "3.13.17"
 
       - name: Install build tools
-        run: python -m pip install --upgrade pip build
+        run: python -m pip install --upgrade "pip>=26.2.2" "certifi>=2026.10.19 build"
 
       # Strip a leading 'v' from the tag (e.g. v1.2.3 → 1.2.3) and write it
       # into pyproject.toml so the published package version matches the tag.
@@ -35,4 +41,4 @@ jobs:
         run: python -m build
 
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
